@@ -16,11 +16,14 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var placeNameField: UITextField!
     @IBOutlet weak var addressField: UITextField!
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var imageToPost: UIImageView!
     
     var placeData: PlaceData?
     var locationManger: CLLocationManager!
     var currentLocation: CLLocation!
     var regionRadius = 1000.0 // 1 km
+    var imagePicker = UIImagePickerController()
+    var newImages = [UIImage]()
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -35,6 +38,8 @@ class DetailViewController: UIViewController {
         self.view.addGestureRecognizer(tap)
 
         mapView.delegate = self
+        imagePicker.delegate = self
+        
         if let placeData = placeData {
             centerMap(mapLocation: placeData.coordinate, regionRadius: regionRadius)
             mapView.removeAnnotations(mapView.annotations)
@@ -82,6 +87,21 @@ class DetailViewController: UIViewController {
         let autocompleteController = GMSAutocompleteViewController()
         autocompleteController.delegate = self
         present(autocompleteController, animated: true, completion: nil)
+    }
+    
+    @IBAction func cameraButtonPressed(_ sender: UIBarButtonItem) {
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let cameraAction = UIAlertAction(title: "Camera", style: .default) { (cameraAction) in
+            self.accessCamera()
+        }
+        let libraryAction = UIAlertAction(title: "Image Library", style: .default) { (libraryAction) in
+            self.accessLibrary()
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(cameraAction)
+        alertController.addAction(libraryAction)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true, completion: nil)
     }
 }
 
@@ -201,5 +221,32 @@ extension DetailViewController: GMSAutocompleteViewControllerDelegate {
     func didUpdateAutocompletePredictions(_ viewController: GMSAutocompleteViewController) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
+}
+
+extension DetailViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        let selectedImage = info[UIImagePickerControllerOriginalImage] as! UIImage
+        imageToPost.image = selectedImage
+        newImages.append(selectedImage)
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func accessLibrary() {
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func accessCamera() {
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            imagePicker.sourceType = .camera
+            present(imagePicker, animated: true, completion: nil)
+        } else {
+            showAlert(title: "Camera Not Available", message: "There is no camera available on this device.")
+        }
+    }
 }
