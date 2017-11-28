@@ -17,7 +17,7 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var addressField: UITextField!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var imageToPost: UIImageView!
-    
+     
     var placeData: PlaceData?
     var locationManger: CLLocationManager!
     var currentLocation: CLLocation!
